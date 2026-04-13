@@ -14,9 +14,15 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: floringugu/user-service:v1
+        image: floringugu/user-service:v2
         ports:
         - containerPort: 3000
+        env:
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-token
+              key: token
 ---
 apiVersion: v1
 kind: Service

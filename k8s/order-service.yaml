@@ -14,9 +14,15 @@ spec:
     spec:
       containers:
       - name: order-service
-        image: floringugu/order-service:v1
+        image: floringugu/order-service:v2
         ports:
         - containerPort: 3001
+        env:
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-token
+              key: token
 ---
 apiVersion: v1
 kind: Service
