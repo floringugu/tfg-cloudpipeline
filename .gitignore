@@ -1,0 +1,32 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+*.tfvars
+*.tfvars.json
+
+# Node.js
+node_modules/
+npm-debugO.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Credenciales y entornos
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+service-account*.json
+gcp-credentials*.json
+.gcp/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
