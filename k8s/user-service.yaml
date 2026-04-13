@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: floringugu/user-service:v2
+        image: floringugu/user-service:v3
         ports:
         - containerPort: 3000
         env:

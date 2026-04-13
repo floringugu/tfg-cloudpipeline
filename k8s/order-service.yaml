@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: order-service
-        image: floringugu/order-service:v2
+        image: floringugu/order-service:v3
         ports:
         - containerPort: 3001
         env:
