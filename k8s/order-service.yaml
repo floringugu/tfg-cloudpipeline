@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
       - name: order-service
-        image: floringugu/order-service:v3
+        image: floringugu/order-service:dev-postgres
+        imagePullPolicy: Always
         ports:
         - containerPort: 3001
         env:
@@ -23,6 +24,36 @@ spec:
             secretKeyRef:
               name: influxdb-token
               key: token
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: app-db
+              key: DATABASE_URL
+        - name: USER_SERVICE_URL
+          value: "http://user-service.default.svc.cluster.local"
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
