@@ -5,11 +5,58 @@ on:
     branches: [main]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tfg_user
+          POSTGRES_PASSWORD: tfg_pass
+          POSTGRES_DB: tfg_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tfg_user"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    strategy:
+      matrix:
+        service: [user-service, order-service]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: services/${{ matrix.service }}/package-lock.json
+
+      - name: Install deps
+        working-directory: services/${{ matrix.service }}
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: services/${{ matrix.service }}
+        env:
+          INTEGRATION_DB_URL: postgres://tfg_user:tfg_pass@localhost:5432/tfg_test
+        run: npm test
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.service }}
+          path: services/${{ matrix.service }}/coverage/
+
   build-and-push:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Login to DockerHub
         uses: docker/login-action@v3

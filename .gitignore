@@ -10,6 +10,7 @@ node_modules/
 npm-debugO.log*
 yarn-debug.log*
 yarn-error.log*
+coverage/
 
 # Credenciales y entornos
 .env
