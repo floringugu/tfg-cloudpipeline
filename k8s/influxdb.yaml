@@ -24,11 +24,19 @@ spec:
         - name: DOCKER_INFLUXDB_INIT_USERNAME
           value: admin
         - name: DOCKER_INFLUXDB_INIT_PASSWORD
-          value: admin1234
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-admin
+              key: password
         - name: DOCKER_INFLUXDB_INIT_ORG
           value: tfg
         - name: DOCKER_INFLUXDB_INIT_BUCKET
           value: metrics
+        - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-admin
+              key: token
 ---
 apiVersion: v1
 kind: Service
