@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespaces.yaml
+  - sealed-postgres-credentials.yaml
+  - sealed-app-db.yaml
+  - sealed-influxdb-admin.yaml
+  - sealed-influxdb-token.yaml
+  - postgres.yaml
+  - influxdb.yaml
+  - grafana.yaml
+  - user-service.yaml
+  - order-service.yaml
+  - postgres-backup.yaml
+  - networkpolicies.yaml
+
+images:
+  - name: floringugu/user-service
+    newTag: dev-postgres
+  - name: floringugu/order-service
+    newTag: dev-postgres

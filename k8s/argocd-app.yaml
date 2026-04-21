@@ -3,6 +3,16 @@ kind: Application
 metadata:
   name: tfg-cloudpipeline
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: >-
+      user=floringugu/user-service,order=floringugu/order-service
+    argocd-image-updater.argoproj.io/user.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/order.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/user.allow-tags: "regexp:^[a-f0-9]{40}$"
+    argocd-image-updater.argoproj.io/order.allow-tags: "regexp:^[a-f0-9]{40}$"
+    argocd-image-updater.argoproj.io/user.kustomize.image-name: floringugu/user-service
+    argocd-image-updater.argoproj.io/order.kustomize.image-name: floringugu/order-service
+    argocd-image-updater.argoproj.io/write-back-method: argocd
 spec:
   project: default
   source:
@@ -16,3 +26,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
