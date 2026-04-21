@@ -29,3 +29,10 @@ spec:
                 name: order-service
                 port:
                   number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: static-web
+                port:
+                  number: 80

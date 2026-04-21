@@ -1,0 +1,184 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: static-web-html
+  namespace: default
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>TFG Cloud Pipeline</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+      <style>
+        pre.result { background: var(--pico-card-background-color); padding: .5rem; min-height: 2rem; font-size: .85rem; border-radius: .25rem; }
+        .ok { color: #2e7d32; }
+        .err { color: #c62828; }
+        ul { list-style: none; padding-left: 0; }
+        li { padding: .25rem 0; border-bottom: 1px solid var(--pico-muted-border-color); font-size: .9rem; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .75rem; font-weight: bold; }
+        .badge-ok { background: #c8e6c9; color: #1b5e20; }
+        .badge-err { background: #ffcdd2; color: #b71c1c; }
+      </style>
+    </head>
+    <body>
+      <main class="container">
+        <header>
+          <h1>TFG Cloud Pipeline</h1>
+          <p>Microservicios Node.js sobre GKE · Terraform + ArgoCD + Image Updater · Secrets cifrados con SealedSecrets · Cross-service validation · HTTPS con Let's Encrypt.</p>
+        </header>
+
+        <div class="grid">
+          <section>
+            <h2>Usuarios <span id="user-count" class="badge badge-ok">0</span></h2>
+            <form id="user-form">
+              <input type="email" name="email" placeholder="email" required>
+              <input type="text" name="name" placeholder="nombre" required>
+              <button type="submit">Crear usuario (POST /users)</button>
+            </form>
+            <pre id="user-result" class="result"></pre>
+            <h3>Lista</h3>
+            <ul id="user-list"></ul>
+          </section>
+
+          <section>
+            <h2>Pedidos <span id="order-count" class="badge badge-ok">0</span></h2>
+            <form id="order-form">
+              <input type="number" name="user_id" placeholder="user_id (prueba 9999)" required>
+              <input type="text" name="product" placeholder="producto" required>
+              <input type="number" step="0.01" name="amount" placeholder="precio" required>
+              <button type="submit">Crear pedido (POST /orders)</button>
+            </form>
+            <pre id="order-result" class="result"></pre>
+            <h3>Lista</h3>
+            <ul id="order-list"></ul>
+          </section>
+        </div>
+
+        <footer>
+          <small>Servido por nginx:alpine en GKE. Las peticiones /users y /orders viajan vía nginx-ingress a los microservicios con cert Let's Encrypt. Cada petición genera métricas HTTP que puedes observar en Grafana.</small>
+        </footer>
+      </main>
+
+      <script>
+        const $ = (s) => document.querySelector(s);
+
+        async function listUsers() {
+          try {
+            const res = await fetch('/users');
+            const data = await res.json();
+            $('#user-count').textContent = data.length;
+            $('#user-list').innerHTML = data.map(u =>
+              `<li><strong>#${u.id}</strong> ${escapeHtml(u.name)} &mdash; <small>${escapeHtml(u.email)}</small></li>`
+            ).join('') || '<li><em>(sin usuarios)</em></li>';
+          } catch (e) { $('#user-list').innerHTML = '<li class="err">error: ' + e.message + '</li>'; }
+        }
+
+        async function listOrders() {
+          try {
+            const res = await fetch('/orders');
+            const data = await res.json();
+            $('#order-count').textContent = data.length;
+            $('#order-list').innerHTML = data.map(o =>
+              `<li><strong>#${o.id}</strong> user=${o.user_id} &mdash; ${escapeHtml(o.product)} <small>€${o.amount}</small></li>`
+            ).join('') || '<li><em>(sin pedidos)</em></li>';
+          } catch (e) { $('#order-list').innerHTML = '<li class="err">error: ' + e.message + '</li>'; }
+        }
+
+        function escapeHtml(s) {
+          return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function renderResult(el, status, body) {
+          const cls = (status >= 200 && status < 300) ? 'ok' : 'err';
+          el.innerHTML = `<span class="${cls}">HTTP ${status}</span>\n${JSON.stringify(body, null, 2)}`;
+        }
+
+        $('#user-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(e.target));
+          const res = await fetch('/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          const body = await res.json();
+          renderResult($('#user-result'), res.status, body);
+          if (res.ok) { e.target.reset(); listUsers(); }
+        });
+
+        $('#order-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const form = new FormData(e.target);
+          const data = {
+            user_id: parseInt(form.get('user_id'), 10),
+            product: form.get('product'),
+            amount: parseFloat(form.get('amount'))
+          };
+          const res = await fetch('/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          const body = await res.json();
+          renderResult($('#order-result'), res.status, body);
+          if (res.ok) { e.target.reset(); listOrders(); }
+        });
+
+        listUsers();
+        listOrders();
+        setInterval(() => { listUsers(); listOrders(); }, 5000);
+      </script>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-web
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-web
+  template:
+    metadata:
+      labels:
+        app: static-web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+      volumes:
+        - name: html
+          configMap:
+            name: static-web-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-web
+  namespace: default
+spec:
+  selector:
+    app: static-web
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

@@ -16,6 +16,7 @@ resources:
   - networkpolicies.yaml
   - cluster-issuer.yaml
   - ingress.yaml
+  - static-web.yaml
 
 images:
   - name: floringugu/user-service
