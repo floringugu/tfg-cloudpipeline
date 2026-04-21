@@ -1,0 +1,34 @@
+== Grep de posibles credenciales en el historial de git ==
++  - sealed-influxdb-token.yaml
++log "  Initial admin password:"
++log "    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo"
++    | tee -a "$OUT_DIR/kpi4-$TS.txt" || echo "(InfluxDB query failed — revisa el token si no hay salida)"
++      | grep -iE '(password|passwd|token|api[_-]?key|secret[_-]?key|bearer)' \
+           password: ${{ secrets.DOCKERHUB_TOKEN }}
++                - name: PGPASSWORD
+    InfluxDB now reads its admin password and init token from the
+    the manual post-deploy token generation. The token is shared with
+    services via influxdb-token, so the pipeline is fully declarative.
+         - name: DOCKER_INFLUXDB_INIT_PASSWORD
++        - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
++    password: AgDGnP2YkHHizWT4SIPwan6lkRME7cWTipawKRfikn2p1LPXMzR79Pn4VhqAcZu829PBXoU3SLSFtxnXg98wuujY0a/IsZByrUBSKRXpEzshmsDa1u0Kj3OU7PPB8ml5EMgBczCEtkVz+qSpEKRgaVMr4ASh1jifs3CXMpz09hepe8zywYXWGgNqQ+EWNUrVqjwTF8vujb2O4FL3ReceJp2NBlio+xzuRGzVvv4i7zsvc4hxAx3pYMW46KNtS+1Kd6+pfxpR0HQKP9x99zbritVf+gUs3aQT23H+47oWrFziBcUkj3DRONkFIBUsEQuonV4x6D0Mutz9Q25cjX5wzDOaNyYFPisVGHdLqHgaZUcS0r1S/qAIoboysbKqTN2HG08aCwebcNxkgD3q11rrm1R+BChbWmkkddrHlbP+wFi5/SFQhTaQk+ZthBthSgRnGvuS511mgWnLMxrFfDJh2qeUjR5AFP35qvbGPy5hRuPCIJHg3cKbI+EdunZJUdJ3FeROFcqQCgTaokgYDeBdy5Ytu6oCsx1NK+X9lE/woIWz9aajMpFLrxzZKQ290wQF4FMcImAPtkCU8RqdoWUXy+Hcd+gXNdsWyCSaqryblhMDEVbf6twOpha/m0hazMFtl+GAq7rdUwkeELSi2c1cAn3GcPpRKQSmibC3JPkHmLNYljQHGjM7iq6UoQMmup4EqIf1D7u4FGY7q+eZp/miRvh+/dJoenXBnQU=
++    token: AgAu/pC5u6MerGhvUox+Rzb81NrNxkKiwC6I6QHRlSPB5m8kcdlCSuoWOuPPh8Fp7ibcnIVLfpCkyLjsQhVOo5NZQkwfAGeDs/p5riuId6NaiC9s2Knlv9tOGfTfb5jyGWSQwlBQMbe05ra9zUlt3EVFqcpf8fBQb+pWyO/vy3A3glVVp3J8vlkOB2w2w+/CnVsNDiUFrfLcXXNrilVW5KKWN/4Zcf79+gz8JCQn53gkRfu8/I/bPsiTlV9JmqP+VoR+AhyjiGmv17iPSbb2VVzJDfYoInZpP3sqYrfIC8AlECyqYL2KzDn/uUzG6SOMSNyMWXPS4d/Y3AcRJci43Sd5+95WW+EBcacmqrBAyvJbIWlpu6ocpeeyWqvc1rTjJCbk7W1yQ/15iO38yYP6kczl4pU0UKP3WqVH6XIdZGAi27czSD0AyxlUri8y/m0b9dgbZ/dlGCs08sXphwgcWe2zx1LN2kCTAkzK82vlEtTMWmTrUKeDlBlEpmCYbf1DiF8MZwPf6Zzsve5gxPiDvovhDDl5Ko5QlUngzo8Ry36YVeslDzxWB8tH0KJvvv7biaNbHWRDwnkqscS2ky2/qt8URVm1ay2sLxf6MzIl18luf9FWcxmWUVV/hCBbDUXPOY9OMiWFr47saroaE5MX947LbUx3NApFV8WRcD/NB8ngyXGRO3LIEHThd2iciuF270BVNNr0vmdYSrEXBfzP4vt7tNP/Skivz23q10EC7vOyNlqo0WjL9vAMw4VTETIsUUScC2mlHJ/ddQfOXSkQfy7x
+diff --git a/k8s/sealed-influxdb-token.yaml b/k8s/sealed-influxdb-token.yaml
++++ b/k8s/sealed-influxdb-token.yaml
++  name: influxdb-token
++    token: AgBrwXgK43CpY95ha/B8YOrIGZV6yAo3HXXGDOPhlGEIqZ9i38YX5EfnsPyNFZOaIpl4yOrPNLhvLW3WbpAWnyMFVfZoiHlOIQ/4AoGVVWgCKhbKXLWKnEFWroRtmJBEZYLX+vOn0+MuggmFWKaaiLQkQig2xaXwK8nXvAEFivEZX3+R/Wy1l3bL/kBt28OpJsMa/knPLNoic+3EUhL9zU+jQQK3pIh+wk7CMR0POGlLH+eHnHTGVXilCDpETE2udsnhUP6ntQy1IJkeey2oVAhnEIP3L9zU7d4G3EIpH0ChgFsGUtWYLDcKYeTnu0eFfNq0hKdw5eoMcN4076XnehivaPGDcbgY8/OA1XRxBTREHUMT3msBMubk+wJ0LWOUCiWqiDB7Dk79OLsoEWb1zzk9OAmGKgmq0KmIDRgSaMSpDoy43SpP9cm1GO6nLwVFhlnKnIajegLBswkC3Sn8jqOt7xENfEHRoZRY2bJZWh46YkrbGV53T0rX3flU7IFfzEbl/JmiQfpbUhEQHeFu2Ow/NI5Gxm+TzrAZnGr37BQ6fXRWxQdKwEVRFwd9h3SqI/dH/qxG3+jpl9oBLBA+HLjpqTukp8IRgTTcXNtKQ5dM6b+sLmAasgFwQ++PVEWzO7jpXhD6jzq9jxjWSeRuGUS5NbP5pL59mlX99OOkT26Ngh2q1fyexA8D8rRd+WTfKXm7KPA/5fXSFRo/1dP4j1rM3ZW1NLF4jREPAeCHBLnc7Bm3n9YcWO3oKHsYP+XAZb/aJRCJKZCBrLo/y22sMEdp
++      name: influxdb-token
++kubectl apply -f "$REPO_ROOT/k8s/sealed-influxdb-token.yaml"
+
+== SealedSecrets commiteados ==
+/home/florin/tfg-cloudpipeline/k8s/sealed-app-db.yaml
+/home/florin/tfg-cloudpipeline/k8s/sealed-influxdb-admin.yaml
+/home/florin/tfg-cloudpipeline/k8s/sealed-influxdb-token.yaml
+/home/florin/tfg-cloudpipeline/k8s/sealed-postgres-credentials.yaml
+
+== Ficheros sospechosos en tracked paths ==
+k8s/sealed-postgres-credentials.yaml
+
+== Master key de SealedSecrets (debe estar FUERA del repo) ==
+PASS: master key no está en git
+-rw-r--r-- 1 florin florin 7099 Apr 20 15:00 /home/florin/tfg-sealedsecrets-master.yaml

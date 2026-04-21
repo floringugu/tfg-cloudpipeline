@@ -1,0 +1,15 @@
+NAMESPACE         NAME                                                    CPU(cores)   MEMORY(bytes)   
+monitoring        influxdb-84586c7cdc-kzbvl                               35m          63Mi            
+default           user-service-65967568f8-bbm7m                           32m          20Mi            
+data              postgres-0                                              13m          35Mi            
+default           order-service-86959dd6df-gpw49                          2m           18Mi            
+monitoring        grafana-5b8d6ffb96-gbwcb                                2m           49Mi            
+Result: _result
+Table: keys: [_start, _stop, service]
+                   _start:time                      _stop:time          service:string                  _value:int
+------------------------------  ------------------------------  ----------------------  --------------------------
+2026-04-21T10:58:09.384850477Z  2026-04-21T11:58:09.384850477Z           order-service                        1196
+Table: keys: [_start, _stop, service]
+                   _start:time                      _stop:time          service:string                  _value:int
+------------------------------  ------------------------------  ----------------------  --------------------------
+2026-04-21T10:58:09.384850477Z  2026-04-21T11:58:09.384850477Z            user-service                        1216

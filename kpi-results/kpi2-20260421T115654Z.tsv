@@ -1,0 +1,18 @@
+2026-04-21T11:53:20Z	success	kpi1: measure deploy cycle 20260421T115316Z
+2026-04-21T11:51:14Z	success	kpi1: measure deploy cycle 20260421T115110Z
+2026-04-21T11:49:08Z	success	kpi1: measure deploy cycle 20260421T114904Z
+2026-04-21T11:47:13Z	success	kpi1: measure deploy cycle 20260421T114709Z
+2026-04-21T11:45:06Z	success	kpi1: measure deploy cycle 20260421T114502Z
+2026-04-21T11:42:54Z	success	fix: pin Image Updater v0.16.0 and bump cluster to 3 nodes
+2026-04-21T09:39:56Z	success	feat: wire ArgoCD + Image Updater for true commit-to-prod delivery
+2026-04-21T08:59:25Z	success	fix: upgrade to node:22-alpine and drop bundled npm to pass Trivy
+2026-04-21T08:51:19Z	failure	feat: multi-stage image, non-root user, Trivy scan gate
+2026-04-21T08:44:19Z	success	feat: daily pg_dump CronJob to GCS with Workload Identity
+2026-04-21T08:32:51Z	success	chore: wire NetworkPolicies into bootstrap
+2026-04-21T08:32:35Z	success	feat: enable Calico + Workload Identity and lock down pod traffic
+2026-04-20T13:36:21Z	success	feat: encrypt all Secrets with SealedSecrets and add bootstrap script
+2026-04-17T12:27:22Z	success	test: add Jest unit and integration tests, gate CI on green suite
+2026-04-17T11:26:23Z	success	feat: add PostgreSQL integration with CRUD and cross-service validation
+2026-04-13T11:17:46Z	success	fix: force InfluxDB flush after each metric write
+2026-04-13T11:14:32Z	success	feat: add InfluxDB metrics instrumentation v2
+2026-04-13T10:55:09Z	success	feat: add order-service, k8s manifests and CI pipeline

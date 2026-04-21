@@ -1,0 +1,5 @@
+endpoint,total,ok_count,success_rate_pct,p50_ms,p95_ms,p99_ms
+GET_users,100,100,100,88,101,266
+GET_user_by_id,100,100,100,88,97,241
+POST_order_valid,100,100,100,103,180,299
+POST_order_invalid_user,100,0,0,97,133,205

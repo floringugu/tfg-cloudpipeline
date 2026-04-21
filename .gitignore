@@ -12,6 +12,9 @@ yarn-debug.log*
 yarn-error.log*
 coverage/
 
+# KPI raw logs (keep only CSV/TSV/TXT summaries in kpi-results/)
+kpi-results/*.log
+
 # Credenciales y entornos
 .env
 .env.local
