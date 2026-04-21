@@ -1,4 +1,5 @@
-# Postgres: only accept connections from user-service and order-service pods.
+# Postgres: only accept connections from user-service, order-service,
+# and the backup CronJob.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -24,6 +25,12 @@ spec:
           podSelector:
             matchLabels:
               app: order-service
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data
+          podSelector:
+            matchLabels:
+              app: postgres-backup
       ports:
         - protocol: TCP
           port: 5432

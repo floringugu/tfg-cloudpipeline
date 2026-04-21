@@ -64,4 +64,7 @@ kubectl wait --for=condition=ready pod -l app=order-service --timeout=300s
 log "applying NetworkPolicies"
 kubectl apply -f "$REPO_ROOT/k8s/networkpolicies.yaml"
 
+log "applying postgres backup CronJob"
+kubectl apply -f "$REPO_ROOT/k8s/postgres-backup.yaml"
+
 log "done"

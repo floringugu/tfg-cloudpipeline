@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgres-backup
+  namespace: data
+  annotations:
+    iam.gke.io/gcp-service-account: postgres-backup@tfg-cloudpipeline.iam.gserviceaccount.com
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: data
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          serviceAccountName: postgres-backup
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: google/cloud-sdk:alpine
+              env:
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_DB
+                - name: PGHOST
+                  value: postgres
+                - name: BUCKET
+                  value: gs://tfg-cloudpipeline-pg-backups
+              command:
+                - sh
+                - -c
+                - |
+                  set -euo pipefail
+                  apk add --no-cache postgresql16-client >/dev/null
+                  TS=$(date -u +%Y%m%dT%H%M%SZ)
+                  FILE="${PGDATABASE}-${TS}.pgcustom"
+                  echo "[backup] dumping ${PGDATABASE} to /tmp/${FILE}"
+                  pg_dump -Fc -f "/tmp/${FILE}"
+                  echo "[backup] uploading to ${BUCKET}/${FILE}"
+                  gcloud storage cp "/tmp/${FILE}" "${BUCKET}/${FILE}"
+                  echo "[backup] done"
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
