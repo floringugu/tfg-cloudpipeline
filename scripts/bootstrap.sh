@@ -61,4 +61,7 @@ kubectl apply -f "$REPO_ROOT/k8s/order-service.yaml"
 kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
 kubectl wait --for=condition=ready pod -l app=order-service --timeout=300s
 
+log "applying NetworkPolicies"
+kubectl apply -f "$REPO_ROOT/k8s/networkpolicies.yaml"
+
 log "done"
