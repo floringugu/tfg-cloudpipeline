@@ -14,6 +14,8 @@ resources:
   - order-service.yaml
   - postgres-backup.yaml
   - networkpolicies.yaml
+  - cluster-issuer.yaml
+  - ingress.yaml
 
 images:
   - name: floringugu/user-service

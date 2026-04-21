@@ -25,5 +25,5 @@ variable "cluster_name" {
 variable "node_count" {
   description = "Número de nodos del clúster"
   type = number
-  default = 3
+  default = 4
 }

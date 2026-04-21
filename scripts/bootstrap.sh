@@ -14,6 +14,9 @@ SEALED_SECRETS_KEY_BACKUP="${SEALED_SECRETS_KEY_BACKUP:-$HOME/tfg-sealedsecrets-
 SEALED_SECRETS_VERSION="${SEALED_SECRETS_VERSION:-v0.27.1}"
 ARGOCD_VERSION="${ARGOCD_VERSION:-stable}"
 ARGOCD_IMAGE_UPDATER_VERSION="${ARGOCD_IMAGE_UPDATER_VERSION:-v0.16.0}"
+INGRESS_NGINX_VERSION="${INGRESS_NGINX_VERSION:-controller-v1.11.3}"
+CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-v1.15.3}"
+INGRESS_STATIC_IP="${INGRESS_STATIC_IP:-34.77.210.246}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 log() { echo "[bootstrap] $*"; }
@@ -57,7 +60,7 @@ kubectl apply -f "$REPO_ROOT/k8s/grafana.yaml"
 kubectl -n data wait --for=condition=ready pod -l app=postgres --timeout=300s
 kubectl -n monitoring wait --for=condition=ready pod -l app=influxdb --timeout=300s
 
-log "6/8 applying microservices + network policies + backup CronJob"
+log "6/9 applying microservices + network policies + backup CronJob"
 kubectl apply -f "$REPO_ROOT/k8s/user-service.yaml"
 kubectl apply -f "$REPO_ROOT/k8s/order-service.yaml"
 kubectl wait --for=condition=ready pod -l app=user-service --timeout=300s
@@ -65,7 +68,20 @@ kubectl wait --for=condition=ready pod -l app=order-service --timeout=300s
 kubectl apply -f "$REPO_ROOT/k8s/networkpolicies.yaml"
 kubectl apply -f "$REPO_ROOT/k8s/postgres-backup.yaml"
 
-log "7/8 installing ArgoCD ($ARGOCD_VERSION) and Image Updater ($ARGOCD_IMAGE_UPDATER_VERSION)"
+log "7/9 installing ingress-nginx ($INGRESS_NGINX_VERSION) and cert-manager ($CERT_MANAGER_VERSION)"
+kubectl apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/${INGRESS_NGINX_VERSION}/deploy/static/provider/cloud/deploy.yaml"
+kubectl -n ingress-nginx wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=300s
+kubectl -n ingress-nginx patch svc ingress-nginx-controller \
+  -p "{\"spec\":{\"loadBalancerIP\":\"${INGRESS_STATIC_IP}\"}}"
+
+kubectl apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
+kubectl -n cert-manager wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager --timeout=300s
+
+log "applying ClusterIssuer + Ingress (TLS certificate will be issued by Let's Encrypt)"
+kubectl apply -f "$REPO_ROOT/k8s/cluster-issuer.yaml"
+kubectl apply -f "$REPO_ROOT/k8s/ingress.yaml"
+
+log "8/9 installing ArgoCD ($ARGOCD_VERSION) and Image Updater ($ARGOCD_IMAGE_UPDATER_VERSION)"
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
 kubectl -n argocd rollout status deployment/argocd-server --timeout=300s
@@ -75,7 +91,7 @@ kubectl -n argocd rollout status statefulset/argocd-application-controller --tim
 kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/${ARGOCD_IMAGE_UPDATER_VERSION}/manifests/install.yaml"
 kubectl -n argocd rollout status deployment/argocd-image-updater --timeout=180s
 
-log "8/8 registering tfg-cloudpipeline Application"
+log "9/9 registering tfg-cloudpipeline Application"
 kubectl apply -f "$REPO_ROOT/k8s/argocd-app.yaml"
 
 log "done — ArgoCD is now the authoritative reconciler for k8s/"
