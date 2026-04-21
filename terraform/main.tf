@@ -39,5 +39,20 @@ resource "google_container_cluster" "gke" {
     disk_size_gb = 30
   }
 
+  network_policy {
+    enabled  = true
+    provider = "CALICO"
+  }
+
+  addons_config {
+    network_policy_config {
+      disabled = false
+    }
+  }
+
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+
   deletion_protection = false
 }
