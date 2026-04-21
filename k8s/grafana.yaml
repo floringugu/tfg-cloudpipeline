@@ -21,6 +21,10 @@ spec:
         env:
         - name: GF_SECURITY_ADMIN_PASSWORD
           value: admin1234
+        - name: GF_SERVER_ROOT_URL
+          value: https://tfg-cloudpipeline.duckdns.org/grafana/
+        - name: GF_SERVER_SERVE_FROM_SUB_PATH
+          value: "true"
 ---
 apiVersion: v1
 kind: Service
@@ -33,4 +37,4 @@ spec:
   ports:
   - port: 80
     targetPort: 3000
-  type: LoadBalancer
+  type: ClusterIP
