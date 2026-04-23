@@ -83,12 +83,16 @@ kubectl apply -f "$REPO_ROOT/k8s/ingress.yaml"
 
 log "8/9 installing ArgoCD ($ARGOCD_VERSION) and Image Updater ($ARGOCD_IMAGE_UPDATER_VERSION)"
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
+# server-side apply avoids the 262 KB last-applied-configuration annotation limit
+# hit by the applicationsets CRD in argocd's install.yaml.
+kubectl apply -n argocd --server-side --force-conflicts \
+  -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
 kubectl -n argocd rollout status deployment/argocd-server --timeout=300s
 kubectl -n argocd rollout status deployment/argocd-repo-server --timeout=300s
 kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
 
-kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/${ARGOCD_IMAGE_UPDATER_VERSION}/manifests/install.yaml"
+kubectl apply -n argocd --server-side --force-conflicts \
+  -f "https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/${ARGOCD_IMAGE_UPDATER_VERSION}/manifests/install.yaml"
 kubectl -n argocd rollout status deployment/argocd-image-updater --timeout=180s
 
 log "9/9 registering tfg-cloudpipeline Application + exposing ArgoCD at /argocd"

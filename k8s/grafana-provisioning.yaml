@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: InfluxDB
+        type: influxdb
+        access: proxy
+        url: http://influxdb.monitoring.svc.cluster.local:8086
+        isDefault: true
+        jsonData:
+          version: Flux
+          organization: tfg
+          defaultBucket: metrics
+          tlsSkipVerify: true
+        secureJsonData:
+          token: ${INFLUX_TOKEN}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+  namespace: monitoring
+data:
+  providers.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'tfg'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-http
+  namespace: monitoring
+data:
+  tfg-http.json: |
+    {
+      "uid": "tfg-http",
+      "title": "TFG Cloud Pipeline · HTTP traffic",
+      "schemaVersion": 39,
+      "version": 1,
+      "time": { "from": "now-15m", "to": "now" },
+      "refresh": "5s",
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "Peticiones HTTP por servicio (count/10s)",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+          "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 },
+              "unit": "short"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "query": "from(bucket:\"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_requests\" and r._field == \"count\")\n  |> group(columns: [\"service\"])\n  |> aggregateWindow(every: 10s, fn: sum, createEmpty: true)\n  |> fill(value: 0)\n  |> yield(name: \"count\")"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "Latencia p50 / p95 por servicio (ms)",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+          "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+          "fieldConfig": {
+            "defaults": { "unit": "ms", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "spanNulls": true } }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "query": "from(bucket:\"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_requests\" and r._field == \"duration_ms\")\n  |> group(columns: [\"service\"])\n  |> aggregateWindow(every: 30s, fn: (column, tables=<-) => tables |> quantile(q: 0.50), createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: \"p50\" }))\n  |> yield(name: \"p50\")"
+            },
+            {
+              "refId": "B",
+              "query": "from(bucket:\"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_requests\" and r._field == \"duration_ms\")\n  |> group(columns: [\"service\"])\n  |> aggregateWindow(every: 30s, fn: (column, tables=<-) => tables |> quantile(q: 0.95), createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: \"p95\" }))\n  |> yield(name: \"p95\")"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Status codes (últimos 15 min)",
+          "gridPos": { "h": 6, "w": 24, "x": 0, "y": 20 },
+          "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "query": "from(bucket:\"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_requests\" and r._field == \"count\")\n  |> group(columns: [\"status\"])\n  |> sum()"
+            }
+          ]
+        }
+      ]
+    }
