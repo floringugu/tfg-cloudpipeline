@@ -97,7 +97,10 @@ kubectl -n argocd rollout status deployment/argocd-image-updater --timeout=180s
 
 log "9/9 registering tfg-cloudpipeline Application + exposing ArgoCD at /argocd"
 kubectl apply -f "$REPO_ROOT/k8s/argocd-ingress.yaml"
+kubectl apply -f "$REPO_ROOT/k8s/argocd-tuning.yaml"
+kubectl -n argocd rollout restart statefulset argocd-application-controller
 kubectl -n argocd rollout status deployment argocd-server --timeout=180s
+kubectl -n argocd rollout status statefulset argocd-application-controller --timeout=180s
 kubectl apply -f "$REPO_ROOT/k8s/argocd-app.yaml"
 
 log "done — ArgoCD is now the authoritative reconciler for k8s/"

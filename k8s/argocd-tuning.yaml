@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # Poll git every 30 s (default: 3 min)
+  timeout.reconciliation: "30s"
+  # Hard refresh every 10 min even if git has not moved (default: disabled)
+  timeout.hard.reconciliation: "10m"
