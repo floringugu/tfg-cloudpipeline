@@ -28,6 +28,13 @@ data:
         <header>
           <h1>TFG Cloud Pipeline</h1>
           <p>Microservicios Node.js sobre GKE · Terraform + ArgoCD + Image Updater · Secrets cifrados con SealedSecrets · Cross-service validation · HTTPS con Let's Encrypt.</p>
+          <nav>
+            <ul>
+              <li><a href="/grafana/" role="button" class="secondary">📊 Grafana</a></li>
+              <li><a href="/argocd/" role="button" class="secondary">🚀 ArgoCD</a></li>
+              <li><a href="https://github.com/floringugu/tfg-cloudpipeline" role="button" class="contrast" target="_blank" rel="noopener">📂 Repo</a></li>
+            </ul>
+          </nav>
         </header>
 
         <div class="grid">
