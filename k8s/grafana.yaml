@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: monitoring
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard-rwo
+  resources:
+    requests:
+      storage: 2Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,6 +17,8 @@ metadata:
   namespace: monitoring
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: grafana
@@ -13,6 +27,9 @@ spec:
       labels:
         app: grafana
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
       containers:
       - name: grafana
         image: grafana/grafana:10.4.0
@@ -25,6 +42,33 @@ spec:
           value: https://tfg-cloudpipeline.duckdns.org/grafana/
         - name: GF_SERVER_SERVE_FROM_SUB_PATH
           value: "true"
+        - name: INFLUX_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: influxdb-admin
+              key: token
+        volumeMounts:
+          - name: data
+            mountPath: /var/lib/grafana
+          - name: datasources
+            mountPath: /etc/grafana/provisioning/datasources
+          - name: dashboard-provider
+            mountPath: /etc/grafana/provisioning/dashboards
+          - name: dashboards
+            mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: grafana-data
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboard-http
 ---
 apiVersion: v1
 kind: Service
