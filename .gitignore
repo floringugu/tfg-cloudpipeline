@@ -34,3 +34,4 @@ gcp-credentials*.json
 # Sistema operativo
 .DS_Store
 Thumbs.db
+docs/
