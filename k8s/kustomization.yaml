@@ -10,6 +10,7 @@ resources:
   - postgres.yaml
   - influxdb.yaml
   - grafana.yaml
+  - grafana-provisioning.yaml
   - user-service.yaml
   - order-service.yaml
   - postgres-backup.yaml
